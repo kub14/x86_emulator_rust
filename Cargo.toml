@@ -1,0 +1,12 @@
+[package]
+name = "x86_emulator_rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+heck = "0.5.0"
+proc-macro2 = "1.0.86"
+quote = "1.0.36"
+strum = "0.26.3"
+strum_macros = "0.26.4"
+variant_count = "1.1.0"
