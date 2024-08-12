@@ -51,5 +51,57 @@ pub fn parse_modrm(emu: &mut Emulator) -> ModRM {
     return modrm;
 }
 
+pub fn calc_memory_address(emu: &mut Emulator, modrm: &ModRM) -> u32 {
+    if modrm.modval == 0 {
+        if modrm.rm == 4 {
+            println!("not implemented ModRM mod = 0, rm = 4");
+            process::exit(1); 
+        } else if modrm.rm == 5 {
+            return modrm.disp32
+        }
+        return get_register32(emu, modrm.rm.try_into().unwrap());
+    } else if modrm.modval == 1 {
+        if modrm.rm == 4 {
+            println!("not implemented ModRM mod = 1, rm = 4");
+            process::exit(1);
+        }
+        return (get_register32(emu, modrm.rm.try_into().unwrap()) as i32 + modrm.disp8 as i32) as u32;
+    } else if modrm.modval == 2 {
+        if modrm.rm == 4 {
+            println!("not implemented ModRM mod = 2, rm = 4");
+            process::exit(1);
+        }
+        return get_register32(emu, modrm.rm.try_into().unwrap()) + modrm.disp32;
+    }
+    println!("not implemented ModRM mod = 3");
+    procss::exit(1);
 
+}
 
+// get rm32 register from memory
+
+pub fn get_rm32(emu: &mut Emulator, modrm: &ModRM) -> u32 {
+    if modrm.modval == 3 {
+        return get_register32(emu, modrm.rm.try_into().unwrap());        
+    } else {
+        let address = calc_memory_address(emu, modrm);
+        return get_memory32(emu, address.try_into().unwrap());
+    }
+}
+
+pub fn set_rm32(emu: &mut Emulator, modrm: &ModRM, value: u32) {
+    if modrm.modval == 3 {
+        set_register32(emu, modrm.rm.try_into().unwrap(), value);
+    } else {
+        let address = calc_memory_address(emu, modrm);
+        set_memory32(emu, address.try_into().unwrap(), value);
+    }
+}
+
+pub fn get_rm32(emu: &mut Emulator, modrm: &ModRM) -> u32 {
+    return get_register32(emu, modrm.reg_index.try_into().unwrap());
+}
+
+pub fn set_r32(emu: &mut Emulator, modrm: &ModRM, value: u32) {
+    set_register32(emu, modrm.reg_index.try_into().unwrap(), value);
+}
