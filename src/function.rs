@@ -1,4 +1,4 @@
-use std ::convert::TtyInto;
+use std::convert::TryInto;
 
 use crate::*;
 
@@ -11,7 +11,7 @@ pub fn get_code8(emu: &mut Emulator, index: usize) -> u8 {
     return emu.memory[emu.eip + index];
 }
 
-pub fn get_sign_code8(emu: &mut Emulator, index: usize) {
+pub fn get_sign_code8(emu: &mut Emulator, index: usize) -> i8 {
     return emu.memory[emu.eip + index] as i8;
 }
 
@@ -28,7 +28,7 @@ pub fn get_sign_code32(emu: &mut Emulator, index: usize) -> i32 {
     return get_code32(emu, index) as i32;
 }
 
-pub fn get_register32(emu: &mut Emulator, index: usiez) -> u32 {
+pub fn get_register32(emu: &mut Emulator, index: usize) -> u32 {
     return emu.register[index];
 }
 
@@ -46,21 +46,26 @@ pub fn set_memory32(emu: &mut Emulator, address: usize, value: u32) {
     }
 }
 
-pub fn get_memory32(emu: &mut Emulator, address: usize) {
-    let address = get_register32(emu, ESP) - 4;
-    set_register32(emu, ESP, address.try_into().unwrap());
-    set_memory32(emu, address.try_into().unwrap(), value); 
+pub fn get_memory8(emu: &mut Emulator, address: usize) -> u32 {
+    return emu.memory[address] as u32;
 }
 
-pub fn push32(emu: &mut Emulatro, value: u32) {
+pub fn get_memory32(emu: &mut Emulator, address: usize) {
+    let mut ret: u32 = 0;
+    for i in 0..4 {
+        ret |= get_memory8(emu,address + i) << (8 * i);
+    } 
+}
+
+pub fn push32(emu: &mut Emulator, value: u32) {
     let address = get_register32(emu, ESP) - 4;
     set_register32(emu, ESP, address.try_into().unwrap());
     set_memory32(emu, address.try_into().unwrap(), value);
 }
 
-pub fn pop32(emu: &mut Emulator, value: u332) {
+pub fn pop32(emu: &mut Emulator, value: u32) {
     let address = get_register32(emu, ESP) - 4;
-    set_register32(emu, ESP )
+    set_register32(emu, ESP,(address + 4).try_into().unwrap());
 }
 
 pub fn set_carry(emu: &mut Emulator, is_carry: bool) {
@@ -96,19 +101,19 @@ pub fn set_overflow(emu: &mut Emulator, is_overflow: bool) {
 }
 
 pub fn is_carry(emu: &mut Emulator) -> bool {
-    return (emu.eflags & CARRY_FLAG) != 0;
+    return (emu.eflag & CARRY_FLAG) != 0;
 }
 
 pub fn is_zero(emu: &mut Emulator) -> bool {
-    return (emu.eflags & ZERO_FLAG) != 0;
+    return (emu.eflag & ZERO_FLAG) != 0;
 }
 
 pub fn is_sign(emu: &mut Emulator) -> bool {
-    return (emu.eflags & SIGN_FLAG) != 0;
+    return (emu.eflag & SIGN_FLAG) != 0;
 }
 
 pub fn is_overflow(emu: &mut Emulator) -> bool {
-    return (emu.eflags & OVERLOW_FLAG) != 0;
+    return (emu.eflag & OVERLOW_FLAG) != 0;
 }
 
 pub fn update_eflags_sub(emu: &mut Emulator, v1: u32, v2: u32, result: u64) {
